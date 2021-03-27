@@ -2,8 +2,18 @@
 
 namespace InstagramAPI;
 
+use Psr\Log\LoggerInterface;
+
 class Debug
 {
+    private static $logger;
+
+    public static function setLogger(
+        LoggerInterface $logger)
+    {
+        self::$logger = $logger;
+    }
+
     public static function printRequest(
         $method,
         $endpoint)
@@ -13,7 +23,12 @@ class Debug
         } else {
             $method = $method.':  ';
         }
-        echo $method.$endpoint."\n";
+        
+        if (isset(self::$logger)) {
+            self::$logger->debug($method.$endpoint);
+        } else {
+            echo $method.$endpoint."\n";
+        }
     }
 
     public static function printUpload(
@@ -24,7 +39,12 @@ class Debug
         } else {
             $dat = '→ '.$uploadBytes;
         }
-        echo $dat."\n";
+
+        if (isset(self::$logger)) {
+            self::$logger->debug($dat);
+        } else {
+            echo $dat."\n";
+        }
     }
 
     public static function printHttpCode(
@@ -32,9 +52,15 @@ class Debug
         $bytes)
     {
         if (PHP_SAPI === 'cli') {
-            echo Utils::colouredString("← {$httpCode} \t {$bytes}", 'green')."\n";
+            $out = Utils::colouredString("← {$httpCode} \t {$bytes}", 'green');
         } else {
-            echo "← {$httpCode} \t {$bytes}\n";
+            $out = "← {$httpCode} \t {$bytes}";
+        }
+        
+        if (isset(self::$logger)) {
+            self::$logger->debug($out);
+        } else {
+            echo $out."\n";
         }
     }
 
@@ -50,7 +76,12 @@ class Debug
         if ($truncated && mb_strlen($response, 'utf8') > 1000) {
             $response = mb_substr($response, 0, 1000, 'utf8').'...';
         }
-        echo $res.$response."\n\n";
+
+        if (isset(self::$logger)) {
+            self::$logger->debug($res.$response);
+        } else {
+            echo $res.$response."\n\n";
+        }
     }
 
     public static function printPostData(
@@ -62,6 +93,13 @@ class Debug
         } else {
             $dat = 'DATA: ';
         }
-        echo $dat.urldecode(($gzip ? zlib_decode($post) : $post))."\n";
+
+        $out = $dat.urldecode(($gzip ? zlib_decode($post) : $post));
+
+        if (isset(self::$logger)) {
+            self::$logger->debug($out);
+        } else {
+            echo $out."\n";
+        }
     }
 }
