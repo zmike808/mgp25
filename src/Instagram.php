@@ -187,6 +187,8 @@ class Instagram implements ExperimentsInterface
     public $account;
     /** @var Request\Business Collection of Business related functions. */
     public $business;
+    /** @var Request\Challenge Collection of Challenge related functions. */
+    public $challenge;
     /** @var Request\Collection Collection of Collections related functions. */
     public $collection;
     /** @var Request\Creative Collection of Creative related functions. */
@@ -283,6 +285,7 @@ class Instagram implements ExperimentsInterface
         $this->account = new Request\Account($this);
         $this->business = new Request\Business($this);
         $this->collection = new Request\Collection($this);
+        $this->challenge = new Request\Challenge($this);
         $this->creative = new Request\Creative($this);
         $this->direct = new Request\Direct($this);
         $this->discover = new Request\Discover($this);
@@ -396,6 +399,17 @@ class Instagram implements ExperimentsInterface
     public function getOutputInterface()
     {
         return $this->client->getOutputInterface();
+    }
+
+    /**
+     * Set the active user without login - useful for solving challenges (to
+     * save cookies and settings after it).
+     */
+    public function setUser(
+        $username,
+        $password)
+    {
+        $this->_setUser($username, $password);
     }
 
     /**
