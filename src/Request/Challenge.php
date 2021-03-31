@@ -30,11 +30,34 @@ class Challenge extends RequestCollection
     }
 
     /**
+     * Load data of the web-only challenge.
+     *
+     * @throws \InstagramAPI\Exception\InstagramException
+     *
+     * @return \InstagramAPI\Response\ChallengeDataResponse
+     */
+    public function getWebChallengeData(
+        $challengeUrl)
+    {
+        // $newCookies = $this->ig->client->getCookieJarAsJSON();
+
+        $response = $this->ig->request(ltrim($challengeUrl, '/'))
+            ->setVersion(3)
+            ->setNeedsAuth(false)
+            ->setSignedPost(false)
+            // ->getResponse(new Response\GenericResponse());
+            ->getRawResponse();
+            // ->getDecodedResponse(false);
+
+        return $response;
+    }
+
+    /**
      * Select verification method in the verification form (can be 0, 1).
      * 
      * @throws \InstagramAPI\Exception\InstagramException
      */
-    public function selectVerifyMethod(
+    public function setVerifyMethod(
         $apiPath,
         $choice)
     {
@@ -54,7 +77,7 @@ class Challenge extends RequestCollection
     public function confirmIdentityChallenge(
         $apiPath)
     {
-        return $this->selectVerifyMethod($apiPath, 0);
+        return $this->setVerifyMethod($apiPath, 0);
     }
 
     /**
@@ -62,7 +85,7 @@ class Challenge extends RequestCollection
      * 
      * @throws \InstagramAPI\Exception\InstagramException
      */
-    public function sendSecurityCode(
+    public function setSecurityCode(
         $apiPath,
         $securityCode)
     {
@@ -82,7 +105,7 @@ class Challenge extends RequestCollection
      * 
      * @throws \InstagramAPI\Exception\InstagramException
      */
-    public function sendPhoneNumber(
+    public function setPhoneNumber(
         $apiPath,
         $phoneNumber)
     {
@@ -218,6 +241,17 @@ class Challenge extends RequestCollection
     //         return $request;
     // }
 
+    /**
+     * FIXME: This is bad! Maybe we should use different UA
+     */
+    protected function getWebUserAgent(string $currentUserAgent): string
+    {
+        return (
+            'Mozilla/5.0 (Linux; Android 8.0.0; Custom Phone Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/58.0.3029.125 Mobile Safari/537.36'
+            .$currentUserAgent
+        );
+    }
+
     // public function WebCheckpointAcknowledgeForm ($checkpoint_url)
     // {
     //     $useragent=$this->ig->device->getUserAgent();
@@ -246,34 +280,61 @@ class Challenge extends RequestCollection
     //     return $request;
     // }
 
-    // public function WebCheckpointSelectContactPoint ($checkpoint_url)
-    // {
-    //     $useragent=$this->ig->device->getUserAgent();
-    //     $new_useragent='Mozilla/5.0 (Linux; Android 8.0.0; Custom Phone Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/58.0.3029.125 Mobile Safari/537.36'.$useragent;
-    //     $setuseragent = $this->ig->client->setUserAgent($new_useragent);
-    //     if ($checkpoint_url{0}=='/')
-    //     {
-    //         $checkpoint_url=substr($checkpoint_url,1); 
-    //     }
-    //     $request= $this->ig->request($checkpoint_url)
-    //         ->setVersion(3)
-    //         ->setNeedsAuth(false)
-    //         ->setSignedPost(false)
-    //         ->addHeader('Referer', 'https://i.instagram.com'.$checkpoint_url)
-    //         ->addHeader('X-Requested-With', 'XMLHttpRequest')
-    //         ->addHeader('X-CSRFToken', $this->ig->client->getToken())
-    //         ->addHeader('X-IG-WWW-Claim', '0')
-    //         ->addHeader('X-IG-App-ID', '1217981644879628')
-    //         ->addPost('next', 'None')
-    //         ->addPost('choice', 1)
-    //         // ->getResponse(new Response\GenericResponse());
-    //         ->getRawResponse();
-    //         // ->getDecodedResponse(true);
+    public function webSetVerifyMethod(
+        $checkpointUrl,
+        $choice)
+    {
+        $userAgent = $this->ig->device->getUserAgent();
 
-    //         $setuseragent = $this->ig->client->setUserAgent($useragent);
+        $newUserAgent = $this->getWebUserAgent($userAgent);
+        $this->ig->client->setUserAgent($newUserAgent);
+
+        $request= $this->ig->request(ltrim($checkpointUrl, '/'))
+            ->setVersion(3)
+            ->setNeedsAuth(false)
+            ->setSignedPost(false)
+            ->addHeader('Referer', 'https://i.instagram.com'.$checkpointUrl)
+            ->addHeader('X-Requested-With', 'XMLHttpRequest')
+            ->addHeader('X-CSRFToken', $this->ig->client->getToken())
+            ->addHeader('X-IG-WWW-Claim', '0')
+            ->addHeader('X-IG-App-ID', '1217981644879628')
+            ->addPost('next', 'None')
+            ->addPost('choice', $choice)
+            // ->getResponse(new Response\GenericResponse());
+            ->getRawResponse();
+            // ->getDecodedResponse(true);
+
+        $this->ig->client->setUserAgent($userAgent);
             
-    //     return $request;
-    // }
+        return $response;
+    }
+
+    public function webSubmitFirstChoice(
+        $checkpointUrl)
+    {
+        $userAgent = $this->ig->device->getUserAgent();
+
+        $newUserAgent = $this->getWebUserAgent($userAgent);
+        $this->ig->client->setUserAgent($newUserAgent);
+
+        $response = $this->ig->request(ltrim($checkpointUrl, '/'))
+            ->setVersion(3)
+            ->setNeedsAuth(false)
+            ->setSignedPost(false)
+            ->addHeader('Referer', 'https://i.instagram.com'.$checkpointUrl)
+            ->addHeader('X-Requested-With', 'XMLHttpRequest')
+            ->addHeader('X-CSRFToken', $this->ig->client->getToken())
+            ->addHeader('X-IG-WWW-Claim', '0')
+            ->addHeader('X-IG-App-ID', '1217981644879628')
+            ->addPost('choice', 0)
+            // ->getResponse(new Response\GenericResponse());
+            ->getRawResponse();
+			// ->getDecodedResponse(true);
+
+        $this->ig->client->setUserAgent($userAgent);
+
+        return $response;
+    }
 
     // public function WebCheckpointReviewContactPointChangeForm ($checkpoint_url)
     // {
@@ -303,34 +364,34 @@ class Challenge extends RequestCollection
     //     return $request;
     // }
 
-    // public function WebCheckpointVerifyEmailCode ($security_code, $checkpoint_url)
-    // {
-    //     $useragent=$this->ig->device->getUserAgent();
-    //     $new_useragent='Mozilla/5.0 (Linux; Android 8.0.0; Custom Phone Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/58.0.3029.125 Mobile Safari/537.36'.$useragent;
-    //     $setuseragent = $this->ig->client->setUserAgent($new_useragent);
-    //     if ($checkpoint_url{0}=='/')
-    //         {
-    //             $checkpoint_url=substr($checkpoint_url,1); 
-    //         }
-    //     $request= $this->ig->request($checkpoint_url)
-    //         ->setVersion(3)
-    //         ->setNeedsAuth(false)
-    //         ->setSignedPost(false)
-    //         ->addHeader('Referer', 'https://i.instagram.com'.$checkpoint_url)
-    //         ->addHeader('X-Requested-With', 'XMLHttpRequest')
-    //         ->addHeader('X-CSRFToken', $this->ig->client->getToken())
-    //         ->addHeader('X-IG-WWW-Claim', '0')
-    //         ->addHeader('X-IG-App-ID', '1217981644879628')
-    //         ->addPost('security_code', $security_code)
-    //         ->addPost('next', 'None')
-    //         // ->getResponse(new Response\GenericResponse());
-    //         ->getRawResponse();
-    //         // ->getDecodedResponse(true);
+    public function webSetSecurityCode(
+        $checkpointUrl,
+        $securityCode)
+    {
+        $userAgent = $this->ig->device->getUserAgent();
 
-    //     $setuseragent = $this->ig->client->setUserAgent($useragent);
+        $newUserAgent = $this->getWebUserAgent($userAgent);
+        $this->ig->client->setUserAgent($newUserAgent);
 
-    //     return $request;
-    // }
+        $response = $this->ig->request(ltrim($checkpointUrl, '/'))
+            ->setVersion(3)
+            ->setNeedsAuth(false)
+            ->setSignedPost(false)
+            ->addHeader('Referer', 'https://i.instagram.com'.$checkpointUrl)
+            ->addHeader('X-Requested-With', 'XMLHttpRequest')
+            ->addHeader('X-CSRFToken', $this->ig->client->getToken())
+            ->addHeader('X-IG-WWW-Claim', '0')
+            ->addHeader('X-IG-App-ID', '1217981644879628')
+            ->addPost('security_code', $securityCode)
+            ->addPost('next', 'None')
+            // ->getResponse(new Response\GenericResponse());
+            ->getRawResponse();
+            // ->getDecodedResponse(true);
+
+        $this->ig->client->setUserAgent($userAgent);
+
+        return $response;
+    }
 
     // public function WebCheckpointReset ($checkpoint_url)
     // {
@@ -360,35 +421,37 @@ class Challenge extends RequestCollection
                     
     //     return $request;
     // }
-    // public function WebCheckpointSetPhoneNumber ($phone_number, $challenge_context, $checkpoint_url)
-    // {
-    //     $useragent=$this->ig->device->getUserAgent();
-    //     $new_useragent='Mozilla/5.0 (Linux; Android 8.0.0; Custom Phone Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/58.0.3029.125 Mobile Safari/537.36'.$useragent;
-    //     $setuseragent = $this->ig->client->setUserAgent($new_useragent);
-    //     if ($checkpoint_url{0}=='/')
-    //         {
-    //             $checkpoint_url=substr($checkpoint_url,1); 
-    //         }
-    //     //	inlog ('$this->ig->account_id '.$this->ig->account_id);
-    //     $request= $this->ig->request($checkpoint_url)
-    //             ->setVersion(3)
-    //             ->setNeedsAuth(false)
-    //             ->setSignedPost(false)
-    //             ->addHeader('Referer', 'https://i.instagram.com'.$checkpoint_url)
-    //             ->addHeader('X-Requested-With', 'XMLHttpRequest')
-    //             ->addHeader('X-CSRFToken', $this->ig->client->getToken())
-    //             ->addHeader('X-IG-WWW-Claim', '0')
-    //             ->addHeader('X-IG-App-ID', '1217981644879628')
-    //             ->addPost('phone_number', $phone_number)
-    //             ->addPost('challenge_context', $challenge_context)
-    // //          ->getResponse(new Response\GenericResponse());
-    //             ->getRawResponse();
-    // //			->getDecodedResponse(true);
-        
-    //             $setuseragent = $this->ig->client->setUserAgent($useragent);
-                
-    //         return $request;
-    // }
+
+    public function webSetPhoneNumber(
+        $checkpointUrl,
+        $phoneNumber,
+        $challengeContext)
+    {
+        $userAgent = $this->ig->device->getUserAgent();
+
+        $newUserAgent = $this->getWebUserAgent($userAgent);
+        $this->ig->client->setUserAgent($newUserAgent);
+
+        $response = $this->ig->request(ltrim($checkpointUrl, '/'))
+            ->setVersion(3)
+            ->setNeedsAuth(false)
+            ->setSignedPost(false)
+            ->addHeader('Referer', 'https://i.instagram.com'.$checkpointUrl)
+            ->addHeader('X-Requested-With', 'XMLHttpRequest')
+            ->addHeader('X-CSRFToken', $this->ig->client->getToken())
+            ->addHeader('X-IG-WWW-Claim', '0')
+            ->addHeader('X-IG-App-ID', '1217981644879628')
+            ->addPost('phone_number', $phoneNumber)
+            ->addPost('challenge_context', $challengeContext)
+            // ->getResponse(new Response\GenericResponse());
+            ->getRawResponse();
+            // ->getDecodedResponse(true);
+
+        $this->ig->client->setUserAgent($userAgent);
+
+        return $response;
+    }
+
     // public function WebCheckpointSetSecurityCode ($security_code, $challenge_context, $checkpoint_url)
     // {
     //     $useragent=$this->ig->device->getUserAgent();
@@ -452,8 +515,8 @@ class Challenge extends RequestCollection
      * 
      * @throws \InstagramAPI\Exception\InstagramException
      */
-    public function sendNewPassword(
-        $apiPath,
+    public function webSetNewPassword(
+        $challengeUrl,
         $password,
         $publicKey,
         $keyId,
@@ -467,15 +530,15 @@ class Challenge extends RequestCollection
         $enc_password2 = '#PWD_INSTAGRAM_BROWSER:0:' . $time . ':' . $password;
 
         $userAgent = $this->ig->device->getUserAgent();
-        // FIXME: This is bad
-        $newUserAgent = 'Mozilla/5.0 (Linux; Android 8.0.0; Custom Phone Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/58.0.3029.125 Mobile Safari/537.36'.$useragent;
+
+        $newUserAgent = $this->getWebUserAgent($userAgent);
         $this->ig->client->setUserAgent($newUserAgent);
 
-        $response = $this->ig->request(ltrim($apiPath, '/'))
+        $response = $this->ig->request(ltrim($challengeUrl, '/'))
             ->setVersion(3)
             ->setNeedsAuth(false)
             ->setSignedPost(false)
-            ->addHeader('Referer', 'https://i.instagram.com'.ltrim($apiPath, '/'))
+            ->addHeader('Referer', 'https://i.instagram.com'.$challengeUrl)
             ->addHeader('X-Requested-With', 'XMLHttpRequest')
             ->addHeader('X-CSRFToken', $this->ig->client->getToken())
             ->addHeader('X-IG-WWW-Claim', '0')
