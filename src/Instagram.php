@@ -413,6 +413,14 @@ class Instagram implements ExperimentsInterface
     }
 
     /**
+     * Set the random device string from Devices\GoodDevices.
+     */
+    public function setRandomDevice()
+    {
+		$this->settings->set('devicestring', Devices\GoodDevices::getRandomGoodDevice());
+    }
+
+    /**
      * Login to Instagram or automatically resume and refresh previous session.
      *
      * Sets the active account for the class instance. You can call this
