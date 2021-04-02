@@ -44,6 +44,7 @@ class StorageHandler
         'zr_token', // Zero rating token.
         'zr_expires', // Zero rating token expiration timestamp.
         'zr_rules', // Zero rating rewrite rules.
+        'version_code', // Android APK release.
     ];
 
     /**
