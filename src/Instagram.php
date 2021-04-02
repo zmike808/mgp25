@@ -417,7 +417,19 @@ class Instagram implements ExperimentsInterface
      */
     public function setRandomDevice()
     {
-		$this->settings->set('devicestring', Devices\GoodDevices::getRandomGoodDevice());
+        $this->settings->set('devicestring', Devices\GoodDevices::getRandomGoodDevice());
+    }
+
+    public function getVersionCode()
+    {
+        return $this->client->getVersionCode();
+    }
+
+    public function setVersionCode(
+        $value)
+    {
+        $this->client->setVersionCode($value);
+        $this->settings->set('version_code', $value);
     }
 
     /**
