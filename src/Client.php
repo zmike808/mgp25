@@ -355,6 +355,17 @@ class Client
     {
         return $this->_verifySSL;
     }
+    
+    public function setVersionCode(
+        $value)
+    {
+        $this->_versionCode = $value;
+    }
+
+    public function getVersionCode()
+    {
+        return $this->_versionCode;
+    }
 
     /**
      * Set the proxy to use for requests.
