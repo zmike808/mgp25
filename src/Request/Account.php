@@ -626,6 +626,28 @@ class Account extends RequestCollection
     }
 
     /**
+     * Set a new e-mail and tell Instagram to send you a message to verify it.
+     * 
+     * @see \InstagramAPI\Request\Account::sendConfirmEmail()
+     *
+     * @throws \InstagramAPI\Exception\InstagramException
+     *
+     * @return \InstagramAPI\Response\SendConfirmEmailResponse
+     */
+    public function setEmailAndSendConfirm(
+        $newEmail)
+    {
+        return $this->ig->request('accounts/send_confirm_email/')
+			->addPost('phone_id', $this->ig->phone_id)
+            ->addPost('_uuid', $this->ig->uuid)
+            ->addPost('_uid', $this->ig->account_id)
+            ->addPost('send_source', 'personal_information')
+            ->addPost('_csrftoken', $this->ig->client->getToken())
+			->addPost('email', $newEmail)
+            ->getResponse(new Response\SendConfirmEmailResponse());
+    }
+
+    /**
      * Tell Instagram to send you an SMS code to verify your phone number.
      *
      * @param string $phoneNumber Phone number with country code. Format: +34123456789.
